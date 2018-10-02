@@ -1,61 +1,67 @@
-﻿using NGettext;
+using NGettext;
 using NGettext.Loaders;
-using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using UnityEngine;
 
 namespace ngettext_unity {
-    class UnityMoLoader : MoLoader {
-        private const string LC_MESSAGES = "LC_MESSAGES";
-        private TextAsset foundAndLoadedAsset;
+    public delegate object ResourcesLoader(string path);
+
+    public class UnityMoLoader : MoLoader {
+        private static ResourcesLoader _loader = Resources.Load;
+        private const string _LC_MESSAGES = "LC_MESSAGES";
+        private TextAsset _foundAndLoadedAsset;
+
+        public static void SetLoader(ResourcesLoader newLoader) {
+            _loader = newLoader;
+        }
 
         public UnityMoLoader(string domain, string localeDir) : base(domain, localeDir) {
         }
 
-        override protected string FindTranslationFile(CultureInfo cultureInfo, string domain, string localeDir) {
+        private IEnumerable<string> GetPossibleFilePath(
+                CultureInfo cultureInfo, string domain, string localeDir) {
             var possibleFiles = new[] {
                 this.GetFileName(localeDir, domain, cultureInfo.Name),
                 this.GetFileName(localeDir, domain, cultureInfo.TwoLetterISOLanguageName)
             };
+            return possibleFiles;
+        }
 
-            foreach (string possibleFilePath in possibleFiles) {
-                TextAsset configText = Resources.Load(possibleFilePath) as TextAsset;
-                if (configText) {
-                    this.foundAndLoadedAsset = configText;
-                    return possibleFilePath;
-                }
+        protected override string FindTranslationFile(
+                CultureInfo cultureInfo, string domain, string localeDir) {
+
+            var possibleFiles = this.GetPossibleFilePath(
+                cultureInfo, domain, localeDir);
+
+            foreach (var possibleFilePath in possibleFiles) {
+                var configText = _loader(possibleFilePath) as TextAsset;
+                
+                if (!configText) continue;
+            
+                this._foundAndLoadedAsset = configText;
+                return possibleFilePath;
             }
 
             return null;
         }
 
 
-        /// <summary>
-        /// Loads translations to the specified catalog from specified MO file path.
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="catalog"></param>
-        override protected void Load(string filePath, Catalog catalog) {
-            Debug.Log(String.Format(
-                "Getting translations from asset \"{0}\"...", filePath));
-            using (var stream = new MemoryStream(foundAndLoadedAsset.bytes)) {
+        /// <inheritdoc />
+        protected override void Load(string filePath, Catalog catalog) {
+            Debug.Log($"Getting translations from asset \"{filePath}\"...");
+            using (var stream = new MemoryStream(this._foundAndLoadedAsset.bytes)) {
                 this.Load(stream, catalog);
             }
         }
 
-        /// <summary>
-		/// Constructs a standard path to the MO translation file using specified path to the locale directory, 
-		/// domain and locale's TwoLetterISOLanguageName string.
-		/// </summary>
-		/// <param name="localeDir"></param>
-		/// <param name="domain"></param>
-		/// <param name="locale"></param>
-		/// <returns></returns>
-		override protected string GetFileName(string localeDir, string domain, string locale)
-        {
-            string filePath = Path.Combine(
-                localeDir, Path.Combine(locale, Path.Combine(LC_MESSAGES, domain)));
+        /// <inheritdoc />
+        protected override string GetFileName(
+                string localeDir, string domain, string locale) {
+            
+            var filePath = Path.Combine(
+                localeDir, Path.Combine(locale, Path.Combine(_LC_MESSAGES, domain)));
             filePath = filePath.Replace('\\', '/');
             return filePath;
         }

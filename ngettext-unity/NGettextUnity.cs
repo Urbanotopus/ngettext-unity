@@ -1,10 +1,9 @@
-﻿using System.Globalization;
+using System.Globalization;
 using NGettext;
 
 namespace ngettext_unity {
     public class NGettextUnity {
         private const string LOCALE_PATH = "Locale/";
-        private static readonly NGettextUnity _instance = new NGettextUnity();
 
         private string _localeDomain = "messages_mo";
         private string _currentLocale = null;
@@ -12,19 +11,10 @@ namespace ngettext_unity {
 
         private NGettextUnity() { }
 
-        public static NGettextUnity Instance {
-            get {
-                return _instance;
-            }
-        }
+        public static NGettextUnity Instance { get; } = new NGettextUnity();
+        public static Catalog Catalog => Instance.GetCatalog();
 
-        public static Catalog Catalog {
-            get {
-                return _instance.GetCatalog();
-            }
-        }
-
-        public Catalog GetCatalog() {
+        private Catalog GetCatalog() {
             return this._currentCatalogue;
         }
 
