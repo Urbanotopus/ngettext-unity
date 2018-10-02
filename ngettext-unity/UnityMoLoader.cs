@@ -50,7 +50,8 @@ namespace ngettext_unity {
 
         /// <inheritdoc />
         protected override void Load(string filePath, Catalog catalog) {
-            Debug.Log($"Getting translations from asset \"{filePath}\"...");
+            Debug.Log(string.Format(
+                "Getting translations from asset \"{0}\"...", filePath));
             using (var stream = new MemoryStream(this._foundAndLoadedAsset.bytes)) {
                 this.Load(stream, catalog);
             }
