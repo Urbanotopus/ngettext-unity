@@ -41,7 +41,9 @@ def popen_wrapper(args, stdout_encoding='utf-8'):
     Return stdout output, stderr output, and OS status code.
     """
     try:
-        p = Popen(args, shell=False, stdout=PIPE, stderr=PIPE, close_fds=os.name != 'nt')
+        p = Popen(
+            args,
+            shell=False, stdout=PIPE, stderr=PIPE, close_fds=os.name != 'nt')
     except OSError as err:
         raise RuntimeError('Error executing %s' % args[0])
     output, errors = p.communicate()
@@ -49,6 +51,12 @@ def popen_wrapper(args, stdout_encoding='utf-8'):
         output.decode(stdout_encoding),
         errors.decode(DEFAULT_LOCALE_ENCODING, errors='replace'),
         p.returncode)
+
+
+def generate_msgfmt_call(base_path):
+    input_path = base_path + '.po'
+    output_path = base_path + COMPILED_DOMAIN_SUFFIX
+    return [MSGFMT] + MSGFMT_OPTIONS + ['-o', output_path, input_path]
 
 
 def compile_messages(locations):
@@ -62,11 +70,7 @@ def compile_messages(locations):
             sys.stdout.write('processing file %s in %s\n' % (f, dirpath))
             po_path = os.path.join(dirpath, f)
             base_path = os.path.splitext(po_path)[0]
-
-            input_path = base_path + '.po'
-            output_path = base_path + COMPILED_DOMAIN_SUFFIX
-
-            args = [MSGFMT] + MSGFMT_OPTIONS + ['-o', output_path, input_path]
+            args = generate_msgfmt_call(base_path)
             futures.append(executor.submit(popen_wrapper, args))
 
         for future in concurrent.futures.as_completed(futures):
@@ -94,11 +98,14 @@ def main(source_directory=None):
         locales.extend(map(os.path.basename, locale_dirs))
 
     for found_dir in found_dirs:
-        dirs = [os.path.join(found_dir, locale_name, 'LC_MESSAGES') for locale_name in locales]
+        dirs = [
+            os.path.join(found_dir, locale_name, 'LC_MESSAGES')
+            for locale_name in locales]
         locations = []
         for possible_locale_dir in dirs:
             for dirpath, dirnames, filenames in os.walk(possible_locale_dir):
-                locations.extend((dirpath, f) for f in filenames if f.endswith('.po'))
+                locations.extend(
+                    (dirpath, f) for f in filenames if f.endswith('.po'))
         compile_messages(locations)
 
 

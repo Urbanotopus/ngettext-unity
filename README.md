@@ -1,6 +1,6 @@
 # NGettext for Unity
 
-Implementation of the NGettext .NET implementation of the GNU/Gettext library for Unity.
+Implementation of the [NGettext](https://github.com/neris/NGettext) .NET implementation of the GNU/Gettext library for Unity.
 
 ## Installation
 ### Requirements
