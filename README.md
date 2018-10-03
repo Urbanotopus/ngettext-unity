@@ -1,6 +1,6 @@
 # NGettext for Unity
 
-Implementation of the NGettext .NET implementation of the GNU/Gettext library for Unity.
+Implementation of the [NGettext](https://github.com/neris/NGettext) .NET implementation of the GNU/Gettext library for Unity.
 
 ## Installation
 ### Requirements
@@ -10,7 +10,7 @@ PM> Install-Package NGettext
 ```
 
 ### Project Files
-Now, copy or clone the project to your Unity assets folder.
+Now, copy the `ngettext-unity` folder to your Unity assets folder.
 
 
 ## Example Usage
@@ -51,3 +51,8 @@ Debug.Log(NGettextUnity.Catalog.GetString("Hello, {0}!", "World"));
 ```
 
 If done successfully, Unity should print: `Heyo, World!`.
+
+
+## Going further
+If you look under the [tools folder](tools/), 
+you will find tools that will allow you to quickly get Unity gettext ready files.
