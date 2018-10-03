@@ -1,0 +1,22 @@
+environment:
+  matrix:
+    # Python 3.5 to 3.7
+    - PYTHON: C:\Python37-x64
+    - PYTHON: C:\Python36-x64
+    - PYTHON: C:\Python35-x64
+init:
+  - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+
+install:
+  - python -m pip install setuptools wheel
+  - python -m pip install -r requirements-dev.txt
+
+build: false
+
+test_script:
+  - node -v
+  - python -V
+  - python -m unittest discover tests\tools
+
+cache:
+  - '%LOCALAPPDATA%\pip\Cache'
