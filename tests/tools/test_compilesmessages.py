@@ -1,8 +1,6 @@
 from types import ModuleType
-from unittest import TestCase
+from unittest import TestCase, mock
 from os.path import join, isdir, isfile
-
-import mock
 
 from tests.tools.constants import HERE_PATH, TOOLS_PATH
 
@@ -15,7 +13,7 @@ assert isdir(TEST_PROJECT_PATH), 'Test suite is missing the test project'
 assert isfile(COMPILE_MESSAGES_PATH), 'Test suite is missing `compile messages`'
 
 
-def _load_pyfile(path, name):
+def _load_pyfile(path: str, name: str):
     with open(path, mode='rb') as fp:
         loaded_pyfile = ModuleType(name)
         exec(compile(fp.read(), path, 'exec'), loaded_pyfile.__dict__)
@@ -26,19 +24,21 @@ class TestCompileMessages(TestCase):
     compile_messages_module = _load_pyfile(
         COMPILE_MESSAGES_PATH, 'compilemessages')
 
-    def _generate_msgfmt(self, source_path):
+    def _generate_msgfmt(self, source_path: str):
         full_path = join(TEST_PROJECT_PATH, source_path)
         args = self.compile_messages_module.generate_msgfmt_call(full_path)
 
         self.assertGreater(len(args), 0)
-        self.assertTrue(args[-1].endswith('.po'))
+        self.assertTrue(args[-1].endswith(
+            self.compile_messages_module.POT_FILE_SUFFIX))
         self.assertTrue(args[-2].endswith(
             self.compile_messages_module.COMPILED_DOMAIN_SUFFIX))
 
         return mock.call(args)
 
     @mock.patch.object(compile_messages_module, 'compile_messages')
-    def test_compile_messages_invalid_path(self, mocked_compile_messages):
+    def test_compile_messages_invalid_path(
+            self, mocked_compile_messages: mock.Mock):
         """Ensure the project doesn't attempt to compile
         non-existing locales or files."""
         self.compile_messages_module.main(TEST_PROJECT_PATH + '__invalid')
